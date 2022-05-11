@@ -4,12 +4,15 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\Commande;
+use App\Entity\Commentaire;
 use App\Entity\Newsletter;
+use App\Entity\Produit;
 use App\Entity\ProduitCommande;
 use App\Entity\Rubrique;
 use App\Entity\Utilisateur;
 use App\Repository\ArticleRepository;
 use App\Repository\CategorieRepository;
+use App\Repository\CommentaireRepository;
 use App\Repository\NewsletterRepository;
 use App\Repository\ProduitRepository;
 use App\Repository\RubriqueRepository;
@@ -39,6 +42,7 @@ class AfterworksController extends AbstractController
     private ArticleRepository $articleRepository;
     private UtilisateurRepository $utilisateurRepository;
     private NewsletterRepository $newsletterRepository;
+    private CommentaireRepository $commentaireRepository;
 
 
     // Injection de dépendance
@@ -50,6 +54,7 @@ class AfterworksController extends AbstractController
                                 RubriqueRepository $rubriqueRepository,
                                 ArticleRepository $articleRepository,
                                 UtilisateurRepository $utilisateurRepository,
+                                CommentaireRepository $commentaireRepository,
                                 NewsletterRepository $newsletterRepository)
     {
         $this->serializer = $serializer;
@@ -63,6 +68,7 @@ class AfterworksController extends AbstractController
         $this->articleRepository = $articleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->newsletterRepository = $newsletterRepository;
+        $this->commentaireRepository = $commentaireRepository;
 
 
     }
@@ -708,26 +714,14 @@ class AfterworksController extends AbstractController
 
 
     /**
-     * @Route("/api/Newsletter", name="api_Newsletter_addNewsletter", methods={"POST"})
+     * @Route("/api/addNewsletter/{email}", name="api_Newsletter_addNewsletter", methods={"POST"})
      */
-    public function addNewsletter(Request $request): Response
+    public function addNewsletter($email): Response
     {
-
         try {
-            $requeteJson = $request->getContent();
-            // Désérialiser le json en un objet de la classe Article
-            $objetNewsletter = $this->serializer->deserialize($requeteJson, Newsletter::class, "json");
-
-            $errors = $this->validator->validate($objetNewsletter);
-            // Tester si il y a des erreurs
-            if (count($errors)) {
-                // Il y a erreurs
-                // Renvoyer les erreurs sous la forme d'une réponse au format JSON
-                $errorsJson = $this->serializer->serialize($errors, 'json');
-                return new JsonResponse($errorsJson, Response::HTTP_BAD_REQUEST, [], true);
-            }
-
-
+            $objetNewsletter = new Newsletter();
+            $objetNewsletter->setEmail($email);
+            $objetNewsletter->setAbonnementNewsletter(true);
 
             // Enregistrer l'objet $post dans la base de données
             $this->entityManager->persist($objetNewsletter); // Préparer l'ordre INSERT
@@ -747,6 +741,35 @@ class AfterworksController extends AbstractController
         }
     }
 
+    /**
+     * @Route("/api/desactiverNewsletter/{email}", name="api_Newsletter_desactiverNewsletter", methods={"PUT"})
+     */
+    public function desactiverNewsletter(Request $request, $email): Response
+    {
+
+        try {
+            $requeteJson = $request->getContent();
+
+            $newsletter = $this->newsletterRepository->find($email);
+            var_dump($newsletter);
+            // Désérialiser le json en un objet de la classe Article
+            $requete = $this->serializer->deserialize($requeteJson, Newsletter::class, "json", ["object_to_populate" => $newsletter]);
+
+            $this->entityManager->flush(); // Envoyer l'ordre INSERT vers la base de données
+            // Renvoyer une réponse HTTP
+            $postJSon = $this->serializer->serialize($requeteJson, 'json');
+            return new JsonResponse($postJSon, Response::HTTP_CREATED, [], true);
+
+
+        } catch (NotEncodableValueException $exception) {
+            $error = [
+                "status" => Response::HTTP_BAD_REQUEST,
+                "message" => "Le JSON envoyé dans la requête n'est pas valide"
+            ];
+            // Générer une reponse JSON
+            return new JsonResponse(json_encode($error), Response::HTTP_BAD_REQUEST, [], true);
+        }
+    }
 
 
     /**
@@ -800,6 +823,117 @@ class AfterworksController extends AbstractController
             ];
             // Générer une reponse JSON
             return new JsonResponse(json_encode($error),Response::HTTP_BAD_REQUEST,[],true);
+        }
+    }
+
+    /**
+     * @Route("/api/updateActivationProduit/{id}", name="api_updateActivationProduit_update", methods={"PUT"})
+     */
+    public function updateActivationProduit(Request $request, string $id): Response
+    {
+
+        try {
+            $requeteJson = $request->getContent();
+            $produit = $this->produitRepository->find($id);
+
+            // Désérialiser le json en un objet de la classe Article
+            $requete = $this->serializer->deserialize($requeteJson, Produit::class, "json", ["object_to_populate" => $produit]);
+
+
+            $errors = $this->validator->validate($requete);
+            // Tester si il y a des erreurs
+            if (count($errors)) {
+                // Il y a erreurs
+                // Renvoyer les erreurs sous la forme d'une réponse au format JSON
+                $errorsJson = $this->serializer->serialize($errors, 'json');
+                return new JsonResponse($errorsJson, Response::HTTP_BAD_REQUEST, [], true);
+            }
+
+
+            /*            // Enregistrer l'objet $post dans la base de données
+                        $this->entityManager->persist($requete); // Préparer l'ordre INSERT*/
+            $this->entityManager->flush(); // Envoyer l'ordre INSERT vers la base de données
+            // Renvoyer une réponse HTTP
+            $postJSon = $this->serializer->serialize($requete, 'json');
+            return new JsonResponse($postJSon, Response::HTTP_CREATED, [], true);
+
+
+        } catch (NotEncodableValueException $exception) {
+            $error = [
+                "status" => Response::HTTP_BAD_REQUEST,
+                "message" => "Le JSON envoyé dans la requête n'est pas valide"
+            ];
+            // Générer une reponse JSON
+            return new JsonResponse(json_encode($error), Response::HTTP_BAD_REQUEST, [], true);
+        }
+    }
+
+
+
+    /**
+     * @Route("/api/getCommentaireProduit/{id}", name="api_getCommentaireProduit_CommentaireProduit", methods="GET")
+     */
+    public function getCommentaireProduit($id): Response
+    {
+
+        $commentaires = $this->commentaireRepository->getCommentaireProduit($id);
+        // Tester si le $category demandé existe
+        if (! $commentaires) {
+            // $produit est null
+            // Générer une erreur
+            $error = [
+                "status" => Response::HTTP_NOT_FOUND,
+                "message" => "Introuvable"
+            ];
+            // Générer une reponse JSON
+            return new JsonResponse(json_encode($error),Response::HTTP_NOT_FOUND,[],true);
+        }
+
+
+        $categoryJson = $this->serializer->serialize($commentaires,'json');
+        return new JsonResponse($categoryJson,Response::HTTP_OK,[],true);
+    }
+
+    /**
+     * @Route("/api/addCommentaireProduit", name="api_addCommentaireProduit_CommentaireProduit", methods={"POST"})
+     */
+    public function addCommentaireProduit(Request $request): Response
+    {
+
+        try {
+            $requeteJson = $request->getContent();
+            // Désérialiser le json en un objet de la classe Article
+            $objet = $this->serializer->deserialize($requeteJson, Commentaire::class, "json");
+
+            $errors = $this->validator->validate($objet);
+            // Tester si il y a des erreurs
+            if (count($errors)) {
+                // Il y a erreurs
+                // Renvoyer les erreurs sous la forme d'une réponse au format JSON
+                $errorsJson = $this->serializer->serialize($errors, 'json');
+                return new JsonResponse($errorsJson, Response::HTTP_BAD_REQUEST, [], true);
+            }
+
+            // Ajout de l'id Utilisateur avant d'envoyer le json en bdd
+            $userID = $this->getUser()->getIdUtilisateur();
+            $objet = $objet->setIdUtilisateur($userID);
+
+
+            // Enregistrer l'objet $post dans la base de données
+            $this->entityManager->persist($objet); // Préparer l'ordre INSERT
+            $this->entityManager->flush(); // Envoyer l'ordre INSERT vers la base de données
+            // Renvoyer une réponse HTTP
+            $postJSon = $this->serializer->serialize($objet, 'json');
+            return new JsonResponse($postJSon, Response::HTTP_CREATED, [], true);
+
+
+        } catch (NotEncodableValueException $exception) {
+            $error = [
+                "status" => Response::HTTP_BAD_REQUEST,
+                "message" => "Le JSON envoyé dans la requête n'est pas valide"
+            ];
+            // Générer une reponse JSON
+            return new JsonResponse(json_encode($error), Response::HTTP_BAD_REQUEST, [], true);
         }
     }
 

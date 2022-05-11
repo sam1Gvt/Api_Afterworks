@@ -14,37 +14,39 @@ use Doctrine\ORM\Mapping as ORM;
 class Newsletter
 {
 
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="id", type="integer", nullable=false)
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
-     */
-    private $id;
 
     /**
      * @var string
-     *
-     * @ORM\Column(name="email", type="text", length=65535, nullable=false, unique=true)
+     * @ORM\Id
+     * @ORM\Column(name="email", type="text", length=65535, nullable=false)
+     * @ORM\GeneratedValue(strategy="NONE")
      */
     private $email;
 
+
     /**
-     * @return int
+     * @var boolean
+     *
+     * @ORM\Column(name="activation", type="boolean", nullable=false)
      */
-    public function getId(): int
+    private $abonnementNewsletter;
+
+    /**
+     * @return bool
+     */
+    public function isAbonnementNewsletter(): bool
     {
-        return $this->id;
+        return $this->abonnementNewsletter;
     }
 
     /**
-     * @param int $id
+     * @param bool $abonnementNewsletter
      */
-    public function setId(int $id): void
+    public function setAbonnementNewsletter(bool $abonnementNewsletter): void
     {
-        $this->id = $id;
+        $this->abonnementNewsletter = $abonnementNewsletter;
     }
+
 
     /**
      * @return string

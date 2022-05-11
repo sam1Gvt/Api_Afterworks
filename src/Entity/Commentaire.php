@@ -24,9 +24,9 @@ class Commentaire
     /**
      * @var int
      *
-     * @ORM\Column(name="id_client", type="integer", nullable=false)
+     * @ORM\Column(name="id_utilisateur", type="integer", nullable=false)
      */
-    private $idClient;
+    private $idUtilisateur;
 
     /**
      * @var int
@@ -61,14 +61,14 @@ class Commentaire
         return $this->idCommentaire;
     }
 
-    public function getIdClient(): ?int
+    public function getIdUtilisateur(): ?int
     {
-        return $this->idClient;
+        return $this->idUtilisateur;
     }
 
-    public function setIdClient(int $idClient): self
+    public function setIdUtilisateur(int $idClient): self
     {
-        $this->idClient = $idClient;
+        $this->idUtilisateur = $idClient;
 
         return $this;
     }

@@ -19,6 +19,18 @@ class CommentaireRepository extends ServiceEntityRepository
         parent::__construct($registry, Commentaire::class);
     }
 
+    public function getCommentaireProduit($idProduit)
+    {
+        return $this->getEntityManager()
+            ->createQuery(
+                'SELECT c.idCommentaire, c.idUtilisateur, c.idProduit, c.titre, c.description, c.date
+                     FROM App:Commentaire c 
+                     JOIN App:Produit p WITH c.idProduit = p.idProduit
+                     WHERE p.idProduit = '.$idProduit.'
+                     '
+            )
+            ->getResult();
+    }
     // /**
     //  * @return Commentaire[] Returns an array of Commentaire objects
     //  */

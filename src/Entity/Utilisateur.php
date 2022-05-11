@@ -86,18 +86,6 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
      */
     private $telUtilisateur;
 
-    /**
-     * @var boolean
-     *
-     * @ORM\Column(name="abonnement_newsletter", type="boolean", nullable=false)
-     */
-    private $abonnementNewsletter;
-
-
-
-
-
-
 
     public function getIdUtilisateur(): ?int
     {
@@ -186,18 +174,6 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTelUtilisateur(string $telUtilisateur): self
     {
         $this->telUtilisateur = $telUtilisateur;
-
-        return $this;
-    }
-
-    public function getAbonnementNewsletter()
-    {
-        return $this->abonnementNewsletter;
-    }
-
-    public function setAbonnementNewsletter($abonnementNewsletter): self
-    {
-        $this->abonnementNewsletter = $abonnementNewsletter;
 
         return $this;
     }

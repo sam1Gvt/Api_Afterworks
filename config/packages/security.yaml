@@ -47,7 +47,7 @@ security:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/api/gestion, roles: ROLE_REDAC }
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY, methods: [ PUT, DELETE ] }
+        - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY, methods: [ PUT,DELETE ] }
 
 
 
